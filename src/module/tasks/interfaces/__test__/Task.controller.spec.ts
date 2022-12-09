@@ -81,15 +81,15 @@ describe('TaskController', () => {
     });
   });
 
-  describe('updateTask', () => {
-    it('should update a task and return it', async () => {
-      const dto: TaskDto = {
-        title: 'creating a task',
-        description: 'updating task 4 to test something',
-        done: false,
-      };
+  //   describe('updateTask', () => {
+  //     it('should update a task and return it', async () => {
+  //       const dto: TaskDto = {
+  //         title: 'creating a task',
+  //         description: 'updating task 4 to test something',
+  //         done: false,
+  //       };
 
-      expect(await taskController.updateTasks(1, dto)).toEqual(tasks[0]);
-    });
-  });
+  //       expect(await taskController.updateTasks(1, dto)).toEqual(tasks[0]);
+  //     });
+  //   });
 });
