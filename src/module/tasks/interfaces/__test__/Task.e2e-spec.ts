@@ -51,6 +51,28 @@ describe('Tasks - /tasks (e2e)', () => {
     });
   });
 
+  describe('GET /tasks/:id', () => {
+    it('should get an specific task from id', async () => {
+      let task: Task;
+
+      await request(app.getHttpServer())
+        .post(`/tasks`)
+        .send(tasks[0])
+        .expect(201)
+        .then(({ body }) => (task = body));
+
+      await request(app.getHttpServer())
+        .post(`/tasks`)
+        .send(tasks[1])
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .get(`/tasks/${task.id}`)
+        .expect(200)
+        .then(({ body }) => expect(body.title).toBe(tasks[0].title));
+    });
+  });
+
   describe('POST /tasks', () => {
     it('should add a task correctly', async () => {
       const dto: TaskDto = {
@@ -83,18 +105,60 @@ describe('Tasks - /tasks (e2e)', () => {
         .post('/tasks')
         .send(tasks[0])
         .then(({ body }) => (task = body));
-
       return await request(app.getHttpServer())
         .put(`/tasks/${task.id}`)
         .send(tasks[1])
         .then(({ body }) => {
-          task = body;
-          expect(task.title).toBe(tasks[1].title);
+          expect(body.title).toBe(tasks[1].title);
         });
+    });
+  });
+
+  describe('DELETE /tasks', () => {
+    it('should delete a specific task', async () => {
+      let task: Task;
+
+      await request(app.getHttpServer())
+        .post(`/tasks`)
+        .send(tasks[0])
+        .then(({ body }) => (task = body));
+
+      await request(app.getHttpServer())
+        .post(`/tasks`)
+        .send(tasks[1])
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .delete(`/tasks?id=${task.id}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .get(`/tasks/${task.id}`)
+        .expect(400)
+        .then(({ body }) => expect(body.error).toBeDefined());
+
+      await request(app.getHttpServer())
+        .get('/tasks')
+        .expect(200)
+        .then(({ body }) => expect(body).toHaveLength(1));
     });
   });
 
   afterAll(async () => {
     await app.close();
+  });
+
+  afterEach(async () => {
+    let tasks: Task[];
+
+    await request(app.getHttpServer())
+      .get('/tasks')
+      .then(({ body }) => (tasks = body));
+
+    await Promise.allSettled(
+      tasks.map((taskEl: Task) => {
+        return request(app.getHttpServer()).delete(`/tasks?id=${taskEl.id}`);
+      }),
+    );
   });
 });
