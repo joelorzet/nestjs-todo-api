@@ -16,16 +16,16 @@ export class TaskService {
     return this.taskRepository.find();
   }
 
-  async getTask(id: number): Promise<Task> {
-    const task = await this.taskRepository.findOneBy({ id });
+  async getTask(id: string): Promise<Task> {
+    const task = await this.taskRepository.findOneBy({ id: String(id) });
 
     if (!task) {
       throw { status: 400, message: 'Task not found' };
     }
-    return await this.taskRepository.findOneBy({ id });
+    return await this.taskRepository.findOneBy({ id: String(id) });
   }
 
-  createTasks(task: TaskDto) {
+  async createTasks(task: TaskDto) {
     if (!Object.keys(task).length) {
       throw {
         status: 400,
@@ -33,21 +33,20 @@ export class TaskService {
       };
     }
 
-    return this.taskRepository
-      .createQueryBuilder()
-      .insert()
-      .into(TaskSchema)
-      .values({
-        ...task,
-      })
-      .execute();
+    let newTask = this.taskRepository.create();
+
+    newTask = { ...newTask, ...task };
+
+    return this.taskRepository.save(newTask);
   }
 
-  async updateTask(id: number, taskEl: TaskDto) {
-    return await this.taskRepository.update({ id }, { ...taskEl });
+  async updateTask(id: string, taskEl: TaskDto) {
+    await this.taskRepository.update(String(id), { ...taskEl });
+
+    return await this.taskRepository.findOneBy({ id });
   }
 
-  deleteTask(id: number): Promise<DeleteResult> {
+  deleteTask(id: string): Promise<DeleteResult> {
     return this.taskRepository.delete(id);
   }
 }

@@ -8,6 +8,7 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { TaskDto } from '../application/dto/task.dto';
 import { TaskService } from '../application/services/task.service';
@@ -59,12 +60,12 @@ export class TaskController {
   }
 
   @Put(':id')
-  async updateTasks(@Param('id') id, @Body() task: TaskDto) {
+  async updateTask(@Param('id') id: string, @Body() task: TaskDto) {
     return await this.taskService.updateTask(id, task);
   }
 
   @Delete()
-  async deleteTasks(@Body() id: number) {
+  async deleteTasks(@Query() id: string) {
     return await this.taskService.deleteTask(id);
   }
 }
