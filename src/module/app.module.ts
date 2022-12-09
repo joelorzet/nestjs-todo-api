@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BaseController } from './app.controller';
 import { TasksModule } from './tasks/tasks.module';
 
 @Module({
@@ -10,13 +11,13 @@ import { TasksModule } from './tasks/tasks.module';
       port: 3306,
       username: 'root',
       password: 'root',
-      database: 'test',
+      database: 'todo-db',
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
     TasksModule,
   ],
-  controllers: [],
+  controllers: [BaseController],
   providers: [],
 })
 export class AppModule {}
