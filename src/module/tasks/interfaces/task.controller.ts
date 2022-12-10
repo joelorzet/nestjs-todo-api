@@ -24,7 +24,7 @@ export class TaskController {
   }
 
   @Get(':id')
-  async getTask(@Param('id') id): Promise<Task> {
+  async getTask(@Param('id') id: string): Promise<Task> {
     try {
       return await this.taskService.getTask(id);
     } catch (err) {
