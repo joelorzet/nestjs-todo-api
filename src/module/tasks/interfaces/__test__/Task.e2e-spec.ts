@@ -41,7 +41,7 @@ describe('Tasks - /tasks (e2e)', () => {
   });
 
   describe('GET /tasks', () => {
-    it('Get all tasks [GET /tasks]', async () => {
+    it('should return all tasks', async () => {
       return request(app.getHttpServer())
         .get('/tasks')
         .expect(200)
@@ -52,38 +52,62 @@ describe('Tasks - /tasks (e2e)', () => {
   });
 
   describe('GET /tasks/:id', () => {
-    it('should get an specific task from id', async () => {
-      let task: Task;
-
+    let task: Task;
+    beforeEach(async () => {
       await request(app.getHttpServer())
         .post(`/tasks`)
         .send(tasks[0])
-        .expect(201)
         .then(({ body }) => (task = body));
 
-      await request(app.getHttpServer())
-        .post(`/tasks`)
-        .send(tasks[1])
-        .expect(201);
+      await request(app.getHttpServer()).post(`/tasks`).send(tasks[1]);
+    });
 
+    it('should return an specific task from id if found', async () => {
       await request(app.getHttpServer())
         .get(`/tasks/${task.id}`)
         .expect(200)
         .then(({ body }) => expect(body.title).toBe(tasks[0].title));
     });
+
+    it('should return an error if the task was not found', async () => {
+      await request(app.getHttpServer())
+        .get(`/tasks/fake-task`)
+        .expect(400)
+        .then(({ body }) => expect(body.error).toBeDefined());
+    });
   });
 
   describe('POST /tasks', () => {
-    it('should add a task correctly', async () => {
-      const dto: TaskDto = {
-        title: 'Test task 3',
-        description: 'description for test task 3',
-        done: false,
-      };
+    const dto: TaskDto = {
+      title: 'Test task 3',
+      description: 'description for test task 3',
+      done: false,
+    };
 
+    beforeEach(async () => {
       await request(app.getHttpServer())
         .post('/tasks')
         .send(dto)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body.id).toBeDefined();
+        });
+    });
+
+    it('should add a task successfully', async () => {
+      await request(app.getHttpServer())
+        .post('/tasks')
+        .send(dto)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body.id).toBeDefined();
+        });
+    });
+
+    it('should increase the amount of tasks if we add new tasks', async () => {
+      await request(app.getHttpServer())
+        .post('/tasks')
+        .send({ ...dto, description: 'new description for task 3' })
         .expect(201)
         .then(({ body }) => {
           expect(body.id).toBeDefined();
@@ -93,41 +117,68 @@ describe('Tasks - /tasks (e2e)', () => {
         .get('/tasks')
         .expect(200)
         .then(({ body }) => {
-          expect(body).toHaveLength(1);
+          expect(body).toHaveLength(2);
         });
     });
   });
 
   describe('PUT /tasks', () => {
-    it('should update a task', async () => {
-      let task: Task;
+    let task: Task;
+    const newDataTest: TaskDto = {
+      title: 'New Title',
+      description: 'This is a test description to update a task',
+      done: true,
+    };
+
+    beforeEach(async () => {
       await request(app.getHttpServer())
         .post('/tasks')
         .send(tasks[0])
         .then(({ body }) => (task = body));
+
+      await request(app.getHttpServer()).post('/tasks').send(tasks[1]);
+    });
+
+    it('should update a task successfuly', async () => {
       return await request(app.getHttpServer())
         .put(`/tasks/${task.id}`)
-        .send(tasks[1])
+        .send(newDataTest)
         .then(({ body }) => {
-          expect(body.title).toBe(tasks[1].title);
+          expect(body.title).toBe(newDataTest.title);
         });
     });
   });
 
   describe('DELETE /tasks', () => {
-    it('should delete a specific task', async () => {
-      let task: Task;
+    let task: Task;
 
+    beforeEach(async () => {
       await request(app.getHttpServer())
         .post(`/tasks`)
         .send(tasks[0])
         .then(({ body }) => (task = body));
 
-      await request(app.getHttpServer())
-        .post(`/tasks`)
-        .send(tasks[1])
-        .expect(201);
+      await request(app.getHttpServer()).post(`/tasks`).send(tasks[1]);
+    });
 
+    it('should delete a specific task successfully', async () => {
+      await request(app.getHttpServer())
+        .delete(`/tasks?id=${task.id}`)
+        .expect(200);
+    });
+
+    it('if the task was successfully deleted, amount of tasks should be lower', async () => {
+      await request(app.getHttpServer())
+        .delete(`/tasks?id=${task.id}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .get('/tasks')
+        .expect(200)
+        .then(({ body }) => expect(body).toHaveLength(1));
+    });
+
+    it('should return an error if try to get the deleted task', async () => {
       await request(app.getHttpServer())
         .delete(`/tasks?id=${task.id}`)
         .expect(200);
@@ -136,11 +187,6 @@ describe('Tasks - /tasks (e2e)', () => {
         .get(`/tasks/${task.id}`)
         .expect(400)
         .then(({ body }) => expect(body.error).toBeDefined());
-
-      await request(app.getHttpServer())
-        .get('/tasks')
-        .expect(200)
-        .then(({ body }) => expect(body).toHaveLength(1));
     });
   });
 
