@@ -147,6 +147,21 @@ describe('Tasks - /tasks (e2e)', () => {
           expect(body.title).toBe(newDataTest.title);
         });
     });
+
+    it('a task updated should have the new values when fetched from the API', async () => {
+      await request(app.getHttpServer())
+        .put(`/tasks/${task.id}`)
+        .send(newDataTest)
+        .then(({ body }) => {
+          expect(body.title).toBe(newDataTest.title);
+        });
+
+      await request(app.getHttpServer())
+        .get(`/tasks/${task.id}`)
+        .then(({ body }) => {
+          expect(body.title).toBe(newDataTest.title);
+        });
+    });
   });
 
   describe('DELETE /tasks', () => {
@@ -176,6 +191,17 @@ describe('Tasks - /tasks (e2e)', () => {
         .get('/tasks')
         .expect(200)
         .then(({ body }) => expect(body).toHaveLength(1));
+    });
+
+    it('should return an error if we try to delete a task that has already deleted', async () => {
+      await request(app.getHttpServer())
+        .delete(`/tasks?id=${task.id}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete(`/tasks?id=${task.id}`)
+        .expect(400)
+        .then(({ body }) => expect(body.error).toBeDefined());
     });
 
     it('should return an error if try to get the deleted task', async () => {

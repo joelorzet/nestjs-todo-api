@@ -17,12 +17,12 @@ export class TaskService {
   }
 
   async getTask(id: string): Promise<Task> {
-    const task = await this.taskRepository.findOneBy({ id: String(id) });
+    const task = await this.taskRepository.findOneBy({ id });
 
     if (!task) {
       throw { status: 400, message: 'Task not found' };
     }
-    return await this.taskRepository.findOneBy({ id: String(id) });
+    return task;
   }
 
   async createTasks(task: TaskDto) {
@@ -46,7 +46,12 @@ export class TaskService {
     return await this.taskRepository.findOneBy({ id });
   }
 
-  deleteTask(id: string): Promise<DeleteResult> {
+  async deleteTask(id: string): Promise<DeleteResult> {
+    const task = await this.taskRepository.findOneBy({ id });
+
+    if (!task) {
+      throw { message: 'The task doesnt exists or has already deleted' };
+    }
     return this.taskRepository.delete(id);
   }
 }

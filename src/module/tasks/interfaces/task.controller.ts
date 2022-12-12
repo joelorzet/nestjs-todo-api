@@ -9,6 +9,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { TaskDto } from '../application/dto/task.dto';
 import { TaskService } from '../application/services/task.service';
@@ -65,7 +66,20 @@ export class TaskController {
   }
 
   @Delete()
-  async deleteTasks(@Query() id: string) {
-    return await this.taskService.deleteTask(id);
+  async deleteTasks(@Query('id', new ParseUUIDPipe()) id: string) {
+    try {
+      return await this.taskService.deleteTask(id);
+    } catch (err) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: err.message,
+        },
+        HttpStatus.BAD_REQUEST,
+        {
+          cause: err,
+        },
+      );
+    }
   }
 }
