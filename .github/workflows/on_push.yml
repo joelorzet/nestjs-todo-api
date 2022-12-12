@@ -26,7 +26,7 @@ jobs:
       - name: Check Linters && format
         run: |
           npm run lint
-          npm run prettier --check ./**/*.{js,jsx,json}
+          npm run check-format
 
       - name: Run tests
         run: npm run test
