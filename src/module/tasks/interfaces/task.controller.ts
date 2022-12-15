@@ -60,6 +60,27 @@ export class TaskController {
     }
   }
 
+  @Post(':id')
+  async assignTasks(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body('id', new ParseUUIDPipe()) userId: string,
+  ) {
+    try {
+      return await this.taskService.assignTask(id, userId);
+    } catch (err) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: err.message,
+        },
+        HttpStatus.BAD_REQUEST,
+        {
+          cause: err,
+        },
+      );
+    }
+  }
+
   @Put(':id')
   async updateTask(@Param('id') id: string, @Body() task: TaskDto) {
     return await this.taskService.updateTask(id, task);

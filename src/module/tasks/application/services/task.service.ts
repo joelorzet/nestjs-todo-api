@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserSchema } from '../../../user/infrastructure/user.schema';
 import { Repository, DeleteResult } from 'typeorm';
 import { Task } from '../../domain/task.domain';
 import { TaskSchema } from '../../infrastructure/task.schema';
@@ -10,6 +11,8 @@ export class TaskService {
   constructor(
     @InjectRepository(TaskSchema)
     private taskRepository: Repository<TaskSchema>,
+    @InjectRepository(UserSchema)
+    private userRepository: Repository<UserSchema>,
   ) {}
 
   getTasks(): Promise<Task[]> {
@@ -17,12 +20,31 @@ export class TaskService {
   }
 
   async getTask(id: string): Promise<Task> {
-    const task = await this.taskRepository.findOneBy({ id });
+    const task = await this.taskRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
 
     if (!task) {
       throw { status: 400, message: 'Task not found' };
     }
     return task;
+  }
+
+  async assignTask(id: string, userId: string): Promise<Task> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: { tasks: true },
+    });
+
+    const task = await this.taskRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    task.user = user;
+
+    return this.taskRepository.save(task);
   }
 
   async createTasks(task: TaskDto) {
