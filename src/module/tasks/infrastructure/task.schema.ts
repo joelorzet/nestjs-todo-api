@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { UserSchema } from '../../user/infrastructure/user.schema';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { User } from '../../user/domain/user.domain';
 
 @Entity()
 export class TaskSchema {
@@ -13,4 +15,7 @@ export class TaskSchema {
 
   @Column({ default: false })
   done: boolean;
+
+  @ManyToOne(() => UserSchema, (user) => user.tasks, { onDelete: 'SET NULL' })
+  user: User;
 }
