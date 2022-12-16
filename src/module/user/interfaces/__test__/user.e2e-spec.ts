@@ -102,7 +102,7 @@ describe('User - /user (e2e)', () => {
     });
   });
 
-  describe('POST /user:id', () => {
+  describe('POST /user/:id', () => {
     let user: User;
 
     beforeEach(async () => {
